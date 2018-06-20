@@ -1,0 +1,9 @@
+package bracket.tutorial;
+
+public class CreateABracket {
+
+	public static void main(String[] args) {
+		DoEverything dE = new DoEverything("Bracket Creator Tutorial", 1000, 750);
+		dE.start();
+	}
+}
