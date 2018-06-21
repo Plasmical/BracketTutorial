@@ -1,13 +1,18 @@
 package bracket.tutorial;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.image.BufferStrategy;
+import java.util.ArrayList;
 
 public class DoEverything implements Runnable {
 
 	String title;
 	int width, height;
+	
+	private RenderBrackets rB;
 	
 	private BufferStrategy bs;
 	private Graphics g;
@@ -17,18 +22,51 @@ public class DoEverything implements Runnable {
 	private boolean running = false;
 	private Thread thread;
 	
+	private MouseManager mm = new MouseManager();
+	
 	public DoEverything(String title, int width, int height) {
 		this.title = title;
 		this.width = width;
 		this.height = height;
 	}
 	
+	private ArrayList<Rectangle> choices = new ArrayList<>();
+	
 	private void init() {
 		display = new Display(title, width, height);
+		display.getCanvas().addMouseListener(mm);
+		display.getCanvas().addMouseMotionListener(mm);
+		display.getFrame().addMouseListener(mm);
+		display.getFrame().addMouseMotionListener(mm);
+		
+		for(int i=0; i<4; i++) {
+			choices.add(new Rectangle(20, i*75+50, 100, 50));
+		}
 	}
 	
+	String[] allChoicesSize = {"4", "8", "16", "32"};
+	
+	private boolean hasChosenSize = false;
+	
+	private int size = 0;
+	
 	private void tick() {
-		
+		if(!hasChosenSize) {
+			for(int i=0; i<choices.size(); i++) {
+				if(choices.get(i)==null || choices==null || mm == null || mm.getCursor() == null) {
+					return;
+				}
+				if(choices.get(i).contains(mm.getCursor()) && mm.isLeftPressed()) {
+					hasChosenSize = true;
+					size = Integer.parseInt(allChoicesSize[i]);
+					rB = new RenderBrackets(size);
+				}
+			}
+		}
+	}
+	
+	private void renderRectangle(Rectangle toRender, Graphics g) {
+		g.drawRect(toRender.x, toRender.y, toRender.width, toRender.height);
 	}
 	
 	private void render() {
@@ -42,8 +80,22 @@ public class DoEverything implements Runnable {
 		g.clearRect(0, 0, width, height);
 		//Draw Here!
 		
-		g.setColor(Color.black);
-		g.fillRect(0, 0, width, height);
+		g.fillRect(0, 0, 1000, 750);
+		// get amount of players
+		g.setColor(Color.white);
+		g.setFont(new Font("Arial", Font.PLAIN, 25));
+		if(!hasChosenSize) {
+			g.drawString("Choose the amount of players you wish for your bracket:", 10, 20);
+			
+			for(int i=0; i<choices.size(); i++) {
+				renderRectangle(choices.get(i), g);
+			}
+			for(int i=0; i<allChoicesSize.length; i++) {
+				g.drawString(allChoicesSize[i], 65, i*75+80);
+			}
+		} else {
+			rB.render(g);
+		}
 		
 		//End Drawing!
 		bs.show();
